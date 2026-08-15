@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 /** Places is needed for the Pan-India city Autocomplete inputs. */
 export const GOOGLE_MAPS_LIBRARIES: "places"[] = ["places"];
 
-export const GOOGLE_MAPS_BROWSER_KEY = (import.meta.env
-  .VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY ?? "") as string;
+export const GOOGLE_MAPS_BROWSER_KEY = (import.meta.env[
+  "VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"
+] ?? "") as string;
 
 export const INDIA_CENTER = { lat: 21.5, lng: 78.5 };
 
