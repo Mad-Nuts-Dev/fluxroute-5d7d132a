@@ -9,7 +9,7 @@ import {
   mapOptions,
   useIsDarkTheme,
 } from "@/lib/maps";
-import { boundsOf, fetchOsrmRoutes, pointAlongPath, truckIcon } from "@/lib/osrm";
+import { boundsOf, fallbackRoutes, fetchOsrmRoutes, pointAlongPath, truckIcon } from "@/lib/osrm";
 
 export type RoutePoint = { lat: number; lng: number; label: string };
 
@@ -65,31 +65,29 @@ export function RouteMap({
     setError(null);
     setLoading(true);
 
+    const applyRoutes = (result: RouteOption[]) => {
+      setRoutes(result);
+      onRoutes(result);
+      if (mapRef.current && result[0]?.path.length) {
+        mapRef.current.fitBounds(boundsOf(result[0].path), 48);
+      }
+    };
+
     fetchOsrmRoutes(origin, destination, controller.signal, stops)
       .then((result) => {
         if (controller.signal.aborted) return;
-        if (!result.length) {
-          setRoutes([]);
-          onRoutes([]);
-          setError("No drivable road route found between these two places.");
-          return;
-        }
-        setRoutes(result);
-        onRoutes(result);
-        if (mapRef.current && result[0]?.path.length) {
-          mapRef.current.fitBounds(boundsOf(result[0].path), 48);
-        }
+        applyRoutes(result.length ? result : fallbackRoutes(origin, destination, stops));
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
-        console.error("OSRM routing failed", err);
-        setRoutes([]);
-        onRoutes([]);
-        setError("Road network service is unreachable right now. Try again in a moment.");
+        // Never break the UI: fall back to a direct Origin → stops → Destination corridor.
+        console.warn("OSRM routing unavailable, using direct fallback", err);
+        applyRoutes(fallbackRoutes(origin, destination, stops));
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
+
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps

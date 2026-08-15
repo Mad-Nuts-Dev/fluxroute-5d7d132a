@@ -18,14 +18,16 @@ export async function fetchOsrmRoutes(
   signal?: AbortSignal,
   waypoints: LatLngLit[] = [],
 ): Promise<OsrmRoute[]> {
-  const points = [origin, ...waypoints, destination];
-  const hasStops = waypoints.length > 0;
+  const valid = (p: LatLngLit | null | undefined): p is LatLngLit =>
+    !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng);
+  const stops = waypoints.filter(valid);
+  const points = [origin, ...stops, destination].filter(valid);
+  const hasStops = stops.length > 0;
   const coords = points.map((p) => `${p.lng},${p.lat}`).join(";");
   const url =
     `https://router.project-osrm.org/route/v1/driving/${coords}` +
-    `?overview=full&geometries=geojson&alternatives=${hasStops ? "false" : "true"}` +
-    // Let OSRM re-order the intermediate drop-offs into the most efficient sequence.
-    (hasStops ? "&source=first&destination=last&roundtrip=false" : "");
+    `?overview=full&geometries=geojson&alternatives=${hasStops ? "false" : "true"}`;
+
 
   const res = await fetch(url, { signal: signal ?? null });
   if (!res.ok) throw new Error(`OSRM request failed (${res.status})`);
@@ -52,8 +54,40 @@ export async function fetchOsrmRoutes(
   }));
 }
 
+/** Straight-line fallback corridor used when the routing service is unreachable. */
+export function fallbackRoutes(
+  origin: LatLngLit,
+  destination: LatLngLit,
+  waypoints: LatLngLit[] = [],
+): OsrmRoute[] {
+  const path = [origin, ...waypoints, destination];
+  let km = 0;
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1]!;
+    const b = path[i]!;
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+    const la = (a.lat * Math.PI) / 180;
+    const lb = (b.lat * Math.PI) / 180;
+    const h =
+      Math.sin(dLat / 2) ** 2 + Math.cos(la) * Math.cos(lb) * Math.sin(dLng / 2) ** 2;
+    km += 6371 * 2 * Math.asin(Math.sqrt(h));
+  }
+  const distanceKm = km * 1.25;
+  return [
+    {
+      index: 0,
+      summary: "Direct corridor (offline estimate)",
+      distanceKm,
+      durationMin: (distanceKm / 52) * 60,
+      path,
+    },
+  ];
+}
+
 /** Interpolated position at fraction t (0..1) along a polyline. */
 export function pointAlongPath(path: LatLngLit[], t: number): LatLngLit | null {
+
   if (!path.length) return null;
   if (path.length === 1) return path[0]!;
   const clamped = Math.min(Math.max(t, 0), 1);
