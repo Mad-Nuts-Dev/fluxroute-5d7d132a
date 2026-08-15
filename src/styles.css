@@ -19,6 +19,8 @@
  */
 
 @theme inline {
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -26,6 +28,17 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --color-eco: var(--eco);
+  --color-eco-foreground: var(--eco-foreground);
+  --color-eco-soft: var(--eco-soft);
+  --color-mint: var(--mint);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --shadow-card: 0 1px 2px oklch(0.21 0.03 256 / 0.04), 0 8px 24px -12px oklch(0.21 0.03 256 / 0.12);
+  --shadow-float: 0 24px 60px -20px oklch(0.21 0.03 256 / 0.3);
+  --shadow-glow: 0 0 0 1px var(--eco), 0 0 28px -4px var(--eco);
+
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -62,74 +75,87 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --radius: 0.75rem;
+  --background: oklch(0.985 0.004 247.858);
+  --foreground: oklch(0.23 0.028 258);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.23 0.028 258);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.23 0.028 258);
+  --primary: oklch(0.62 0.152 156);
+  --primary-foreground: oklch(0.99 0.01 150);
+  --secondary: oklch(0.958 0.008 247.896);
+  --secondary-foreground: oklch(0.3 0.03 258);
+  --muted: oklch(0.958 0.008 247.896);
+  --muted-foreground: oklch(0.52 0.028 257);
+  --accent: oklch(0.95 0.045 156);
+  --accent-foreground: oklch(0.38 0.11 156);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
+  --border: oklch(0.918 0.012 255.508);
+  --input: oklch(0.918 0.012 255.508);
+  --ring: oklch(0.62 0.152 156);
+  --eco: oklch(0.62 0.152 156);
+  --eco-foreground: oklch(0.99 0.01 150);
+  --eco-soft: oklch(0.955 0.045 156);
+  --mint: oklch(0.78 0.13 182);
+  --warn: oklch(0.66 0.16 55);
+  --warn-soft: oklch(0.96 0.05 75);
+  --chart-1: oklch(0.62 0.152 156);
   --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-3: oklch(0.66 0.16 55);
   --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --chart-5: oklch(0.45 0.03 258);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.28 0.028 258);
+  --sidebar-primary: oklch(0.62 0.152 156);
+  --sidebar-primary-foreground: oklch(0.99 0.01 150);
+  --sidebar-accent: oklch(0.955 0.045 156);
+  --sidebar-accent-foreground: oklch(0.38 0.11 156);
+  --sidebar-border: oklch(0.918 0.012 255.508);
+  --sidebar-ring: oklch(0.62 0.152 156);
 }
 
+
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --background: oklch(0.16 0.026 262);
+  --foreground: oklch(0.97 0.008 240);
+  --card: oklch(0.215 0.033 263);
+  --card-foreground: oklch(0.97 0.008 240);
+  --popover: oklch(0.215 0.033 263);
+  --popover-foreground: oklch(0.97 0.008 240);
+  --primary: oklch(0.7 0.148 163);
+  --primary-foreground: oklch(0.16 0.026 262);
+  --secondary: oklch(0.27 0.035 263);
+  --secondary-foreground: oklch(0.97 0.008 240);
+  --muted: oklch(0.26 0.032 263);
+  --muted-foreground: oklch(0.73 0.03 250);
+  --accent: oklch(0.3 0.06 172);
+  --accent-foreground: oklch(0.88 0.14 172);
+  --destructive: oklch(0.63 0.2 25);
+  --destructive-foreground: oklch(0.98 0.003 248);
+  --border: oklch(0.98 0.02 190 / 12%);
+  --input: oklch(0.98 0.02 190 / 16%);
+  --ring: oklch(0.7 0.148 163);
+  --eco: oklch(0.7 0.148 163);
+  --eco-foreground: oklch(0.16 0.026 262);
+  --eco-soft: oklch(0.3 0.06 172);
+  --mint: oklch(0.88 0.16 182);
+  --warn: oklch(0.74 0.16 62);
+  --warn-soft: oklch(0.33 0.07 62);
+  --chart-1: oklch(0.7 0.148 163);
+  --chart-2: oklch(0.88 0.16 182);
+  --chart-3: oklch(0.74 0.16 62);
+  --chart-4: oklch(0.82 0.18 84);
+  --chart-5: oklch(0.7 0.03 250);
+  --sidebar: oklch(0.19 0.03 263);
+  --sidebar-foreground: oklch(0.96 0.008 240);
+  --sidebar-primary: oklch(0.7 0.148 163);
+  --sidebar-primary-foreground: oklch(0.16 0.026 262);
+  --sidebar-accent: oklch(0.3 0.06 172);
+  --sidebar-accent-foreground: oklch(0.88 0.14 172);
+  --sidebar-border: oklch(0.98 0.02 190 / 12%);
+  --sidebar-ring: oklch(0.7 0.148 163);
 }
 
 @layer base {
@@ -141,4 +167,177 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Leaflet surface polish */
+.leaflet-container {
+  background: oklch(0.94 0.01 250);
+  font-family: var(--font-sans);
+  z-index: 0;
+}
+.leaflet-container .leaflet-popup-content-wrapper {
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+.fleet-marker {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid white;
+  box-shadow: 0 6px 16px -6px oklch(0.21 0.03 256 / 0.5);
+}
+.fleet-marker-electric {
+  background: var(--eco);
+}
+.fleet-marker-diesel {
+  background: oklch(0.42 0.03 258);
+}
+
+.fleet-marker-active {
+  outline: 3px solid var(--eco);
+  outline-offset: 2px;
+  transform: scale(1.08);
+}
+
+.fleet-marker-charge {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--eco-soft);
+  border: 2px solid var(--eco);
+  font-size: 13px;
+  line-height: 1;
+}
+
+
+/* Numeric telemetry */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Micro-animations */
+@keyframes eco-pulse-ring {
+  0% { box-shadow: 0 0 0 0 var(--eco); opacity: 0.9; }
+  70% { box-shadow: 0 0 0 14px transparent; opacity: 0.25; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 0.9; }
+}
+@keyframes route-dash {
+  to { stroke-dashoffset: -120; }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 9s linear infinite; }
+.animate-twinkle { animation: twinkle 2.4s ease-in-out infinite; }
+.pulse-ring { animation: eco-pulse-ring 2s ease-out infinite; }
+.leaflet-eco-flow {
+  animation: route-dash 3s linear infinite;
+}
+.card-lift {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+  border-color: color-mix(in oklab, var(--eco) 55%, transparent);
+}
+.glow-text {
+  text-shadow: 0 0 42px color-mix(in oklab, var(--eco) 45%, transparent);
+}
+
+/* Leaflet dark surface */
+.dark .leaflet-container {
+  background: oklch(0.19 0.03 263);
+}
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(185deg) brightness(0.92) contrast(0.92) saturate(0.7);
+}
+.dark .leaflet-container .leaflet-popup-content-wrapper,
+.dark .leaflet-container .leaflet-popup-tip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+}
+.fleet-marker-electric.fleet-marker-active {
+  box-shadow: 0 0 0 0 var(--eco);
+  animation: eco-pulse-ring 2s ease-out infinite;
+}
+.fleet-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--mint);
+  border: 2px solid white;
+  box-shadow: 0 0 18px 4px color-mix(in oklab, var(--mint) 70%, transparent);
+}
+
+/* Animated truck marker along the road geometry */
+.fleet-truck {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  line-height: 1;
+  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--mint) 80%, transparent));
+  transition: transform 0.2s linear;
+}
+.fleet-stop-label {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-card);
+}
+
+/* Modal / card entrances */
+@keyframes eco-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes eco-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fade-in { animation: eco-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-scale-in { animation: eco-scale-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Theme transition across surfaces */
+html, body, .bg-background, .bg-card, .bg-sidebar {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Pulse on active EV markers */
+.fleet-marker-electric {
+  animation: eco-pulse-ring 2.6s ease-out infinite;
 }
