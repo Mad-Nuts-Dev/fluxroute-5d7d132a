@@ -9,6 +9,7 @@ import {
   mapOptions,
   useIsDarkTheme,
 } from "@/lib/maps";
+import { boundsOf, fetchOsrmRoutes, pointAlongPath, truckIcon } from "@/lib/osrm";
 
 export type RoutePoint = { lat: number; lng: number; label: string };
 
@@ -44,6 +45,7 @@ export function RouteMap({
   const mapRef = useRef<google.maps.Map | null>(null);
   const [routes, setRoutes] = useState<RouteOption[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "fluxroute-google-maps",
@@ -57,51 +59,45 @@ export function RouteMap({
       onRoutes([]);
       return;
     }
-    let cancelled = false;
+    const controller = new AbortController();
     setError(null);
-    const service = new google.maps.DirectionsService();
-    service.route(
-      {
-        origin: { lat: origin.lat, lng: origin.lng },
-        destination: { lat: destination.lat, lng: destination.lng },
-        travelMode: google.maps.TravelMode.DRIVING,
-        provideRouteAlternatives: true,
-      },
-      (result, status) => {
-        if (cancelled) return;
-        if (status !== google.maps.DirectionsStatus.OK || !result) {
+    setLoading(true);
+
+    fetchOsrmRoutes(origin, destination, controller.signal)
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        if (!result.length) {
           setRoutes([]);
           onRoutes([]);
-          setError("No drivable route found between these two places.");
+          setError("No drivable road route found between these two places.");
           return;
         }
-        const parsed: RouteOption[] = result.routes.slice(0, 2).map((r, i) => {
-          const meters = r.legs.reduce((acc, l) => acc + (l.distance?.value ?? 0), 0);
-          const seconds = r.legs.reduce((acc, l) => acc + (l.duration?.value ?? 0), 0);
-          return {
-            index: i,
-            summary: r.summary || `Route ${i + 1}`,
-            distanceKm: meters / 1000,
-            durationMin: seconds / 60,
-            path: r.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() })),
-          };
-        });
-        setRoutes(parsed);
-        onRoutes(parsed);
-
-        if (mapRef.current && result.routes[0]?.bounds) {
-          mapRef.current.fitBounds(result.routes[0].bounds, 48);
+        setRoutes(result);
+        onRoutes(result);
+        if (mapRef.current && result[0]?.path.length) {
+          mapRef.current.fitBounds(boundsOf(result[0].path), 48);
         }
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        console.error("OSRM routing failed", err);
+        setRoutes([]);
+        onRoutes([]);
+        setError("Road network service is unreachable right now. Try again in a moment.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, origin?.lat, origin?.lng, destination?.lat, destination?.lng]);
 
   if (loadError) return <MapFallback message="Google Maps failed to load." />;
   if (!isLoaded) return <MapFallback message="Loading Google Maps…" />;
+
+  const activeRoute = routes[selectedIndex] ?? routes[0] ?? null;
+  const truckPos = activeRoute ? pointAlongPath(activeRoute.path, 0.4) : null;
 
   return (
     <div className="relative h-full w-full">
@@ -122,17 +118,17 @@ export function RouteMap({
             <PolylineF
               path={routes[1].path}
               options={{
-                strokeColor: "#10b981",
+                strokeColor: "#10B981",
                 strokeOpacity: 0.25,
-                strokeWeight: selectedIndex === 1 ? 16 : 10,
+                strokeWeight: selectedIndex === 1 ? 18 : 12,
                 zIndex: selectedIndex === 1 ? 3 : 1,
               }}
             />
             <PolylineF
               path={routes[1].path}
               options={{
-                strokeColor: "#00f5d4",
-                strokeOpacity: selectedIndex === 1 ? 1 : 0.75,
+                strokeColor: "#10B981",
+                strokeOpacity: selectedIndex === 1 ? 1 : 0.7,
                 strokeWeight: selectedIndex === 1 ? 6 : 4,
                 zIndex: selectedIndex === 1 ? 4 : 2,
               }}
@@ -143,7 +139,7 @@ export function RouteMap({
           <PolylineF
             path={routes[0].path}
             options={{
-              strokeColor: "#2563eb",
+              strokeColor: "#3B82F6",
               strokeOpacity: selectedIndex === 0 ? 1 : 0.7,
               strokeWeight: selectedIndex === 0 ? 6 : 4,
               zIndex: selectedIndex === 0 ? 5 : 2,
@@ -162,6 +158,17 @@ export function RouteMap({
             label={{ text: "B", color: "#ffffff", fontWeight: "700" }}
           />
         )}
+        {truckPos && (
+          <MarkerF
+            position={truckPos}
+            zIndex={9}
+            icon={{
+              url: truckIcon(selectedIndex === 1 ? "#10B981" : "#3B82F6"),
+              scaledSize: new google.maps.Size(34, 34),
+              anchor: new google.maps.Point(17, 17),
+            }}
+          />
+        )}
       </GoogleMap>
 
       {(!origin || !destination) && (
@@ -169,7 +176,12 @@ export function RouteMap({
           Pick a From and To city to compare the fastest and eco-friendly routes.
         </div>
       )}
-      {error && (
+      {loading && (
+        <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-center gap-2 rounded-lg bg-background/90 p-2 text-center text-xs text-muted-foreground shadow-card">
+          <Loader2 className="size-3.5 animate-spin" /> Tracing highway corridors…
+        </div>
+      )}
+      {error && !loading && (
         <div className="pointer-events-none absolute inset-x-3 top-3 rounded-lg bg-background/90 p-2 text-center text-xs text-destructive shadow-card">
           {error}
         </div>
