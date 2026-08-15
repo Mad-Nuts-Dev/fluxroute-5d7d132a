@@ -42,20 +42,59 @@ export function FleetMap({
 
   const selected = vehicles.find((v) => v.id === selectedId) ?? null;
 
-  const corridor = useMemo(() => {
-    if (!selected) return [];
-    return [
+  const [corridor, setCorridor] = useState<LatLngLit[]>([]);
+
+  // Real highway geometry (OSRM) between the selected vehicle's origin and destination.
+  useEffect(() => {
+    if (!isLoaded || !selected) {
+      setCorridor([]);
+      return;
+    }
+    const controller = new AbortController();
+    fetchOsrmRoutes(
       { lat: selected.origin.lat, lng: selected.origin.lng },
-      { lat: selected.lat, lng: selected.lng },
       { lat: selected.destination.lat, lng: selected.destination.lng },
-    ];
-  }, [selected]);
+      controller.signal,
+    )
+      .then((routes) => {
+        if (controller.signal.aborted) return;
+        setCorridor(routes[0]?.path ?? []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setCorridor([]);
+      });
+    return () => controller.abort();
+  }, [isLoaded, selected?.id, selected?.origin.lat, selected?.destination.lat]);
+
+  // Fraction travelled, derived from the vehicle's live straight-line progress.
+  const progress = selected
+    ? Math.min(
+        Math.max(
+          Math.hypot(
+            selected.lat - selected.origin.lat,
+            selected.lng - selected.origin.lng,
+          ) /
+            (Math.hypot(
+              selected.destination.lat - selected.origin.lat,
+              selected.destination.lng - selected.origin.lng,
+            ) || 1),
+          0,
+        ),
+        1,
+      )
+    : 0;
+
+  const snapped = corridor.length ? pointAlongPath(corridor, progress) : null;
 
   useEffect(() => {
     if (!isLoaded || !mapRef.current || !selected) return;
+    if (corridor.length) {
+      mapRef.current.fitBounds(boundsOf(corridor), 56);
+      return;
+    }
     mapRef.current.panTo({ lat: selected.lat, lng: selected.lng });
     mapRef.current.setZoom(7);
-  }, [isLoaded, selected]);
+  }, [isLoaded, selected, corridor]);
 
   if (loadError) {
     return <MapFallback message="Google Maps failed to load." />;
