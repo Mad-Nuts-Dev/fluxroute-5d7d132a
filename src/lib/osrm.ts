@@ -18,14 +18,16 @@ export async function fetchOsrmRoutes(
   signal?: AbortSignal,
   waypoints: LatLngLit[] = [],
 ): Promise<OsrmRoute[]> {
-  const points = [origin, ...waypoints, destination];
-  const hasStops = waypoints.length > 0;
+  const valid = (p: LatLngLit | null | undefined): p is LatLngLit =>
+    !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng);
+  const stops = waypoints.filter(valid);
+  const points = [origin, ...stops, destination].filter(valid);
+  const hasStops = stops.length > 0;
   const coords = points.map((p) => `${p.lng},${p.lat}`).join(";");
   const url =
     `https://router.project-osrm.org/route/v1/driving/${coords}` +
-    `?overview=full&geometries=geojson&alternatives=${hasStops ? "false" : "true"}` +
-    // Let OSRM re-order the intermediate drop-offs into the most efficient sequence.
-    (hasStops ? "&source=first&destination=last&roundtrip=false" : "");
+    `?overview=full&geometries=geojson&alternatives=${hasStops ? "false" : "true"}`;
+
 
   const res = await fetch(url, { signal: signal ?? null });
   if (!res.ok) throw new Error(`OSRM request failed (${res.status})`);
