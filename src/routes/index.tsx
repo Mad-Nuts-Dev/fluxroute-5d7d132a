@@ -16,13 +16,13 @@ import { Card, CardContent } from "@/components/ui/card";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Smart Eco-Fleet — AI Green Logistics Engine" },
+      { title: "FluxRoute: Green Logistics AI" },
       {
         name: "description",
         content:
           "Road-snapped multi-stop routing, EV battery-decay modelling and an automated ESG carbon ledger for green fleets.",
       },
-      { property: "og:title", content: "Smart Eco-Fleet — AI Green Logistics Engine" },
+      { property: "og:title", content: "FluxRoute: Green Logistics AI" },
       {
         property: "og:description",
         content:

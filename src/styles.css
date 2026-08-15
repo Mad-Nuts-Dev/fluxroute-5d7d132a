@@ -176,16 +176,6 @@
   }
 }
 
-/* Leaflet surface polish */
-.leaflet-container {
-  background: oklch(0.94 0.01 250);
-  font-family: var(--font-sans);
-  z-index: 0;
-}
-.leaflet-container .leaflet-popup-content-wrapper {
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-card);
-}
 .fleet-marker {
   display: grid;
   place-items: center;
@@ -254,9 +244,6 @@
 .animate-spin-slow { animation: spin-slow 9s linear infinite; }
 .animate-twinkle { animation: twinkle 2.4s ease-in-out infinite; }
 .pulse-ring { animation: eco-pulse-ring 2s ease-out infinite; }
-.leaflet-eco-flow {
-  animation: route-dash 3s linear infinite;
-}
 .card-lift {
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease;
 }
@@ -269,18 +256,6 @@
   text-shadow: 0 0 42px color-mix(in oklab, var(--eco) 45%, transparent);
 }
 
-/* Leaflet dark surface */
-.dark .leaflet-container {
-  background: oklch(0.19 0.03 263);
-}
-.dark .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(185deg) brightness(0.92) contrast(0.92) saturate(0.7);
-}
-.dark .leaflet-container .leaflet-popup-content-wrapper,
-.dark .leaflet-container .leaflet-popup-tip {
-  background: var(--popover);
-  color: var(--popover-foreground);
-}
 .fleet-marker-electric.fleet-marker-active {
   box-shadow: 0 0 0 0 var(--eco);
   animation: eco-pulse-ring 2s ease-out infinite;
@@ -340,4 +315,32 @@ html, body, .bg-background, .bg-card, .bg-sidebar {
 /* Pulse on active EV markers */
 .fleet-marker-electric {
   animation: eco-pulse-ring 2.6s ease-out infinite;
+}
+
+/* Google Maps surface polish */
+.gm-style .gm-style-iw-c {
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+.pac-container {
+  border-radius: 0.75rem;
+  margin-top: 4px;
+  box-shadow: var(--shadow-float);
+  font-family: var(--font-sans);
+  z-index: 60;
+}
+.dark .pac-container {
+  background: var(--popover);
+  color: var(--popover-foreground);
+}
+.dark .pac-item {
+  border-top-color: var(--border);
+  color: var(--popover-foreground);
+}
+.dark .pac-item:hover {
+  background: var(--accent);
+}
+.dark .pac-item-query,
+.dark .pac-matched {
+  color: var(--popover-foreground);
 }

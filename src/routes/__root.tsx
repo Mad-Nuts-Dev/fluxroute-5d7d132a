@@ -15,6 +15,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { FleetProvider } from "@/context/FleetContext";
 
 
 function NotFoundComponent() {
@@ -82,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Smart Eco-Fleet — Logistics Control" },
+      { title: "FluxRoute: Green Logistics AI" },
       {
         name: "description",
         content:
@@ -127,15 +128,18 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <FleetProvider>
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background transition-all duration-300">
           <AppSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/85 px-3 backdrop-blur transition-all duration-300">
-              <ThemeToggle />
               <SidebarTrigger />
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">Smart Eco-Fleet Logistics</p>
+                <p className="truncate text-sm font-semibold">FluxRoute: Green Logistics AI</p>
+              </div>
+              <div className="ml-auto flex items-center">
+                <ThemeToggle />
               </div>
             </header>
             <main className="min-w-0 flex-1">
@@ -146,6 +150,7 @@ function RootComponent() {
         </div>
         <Toaster />
       </SidebarProvider>
+      </FleetProvider>
     </QueryClientProvider>
   );
 }

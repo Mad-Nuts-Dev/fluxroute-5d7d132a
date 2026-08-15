@@ -1,21 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useJsApiLoader } from "@react-google-maps/api";
+import { useMemo, useState } from "react";
 import {
   BatteryCharging,
   CheckCircle2,
   Clock,
   Fuel,
+  Gauge,
   Leaf,
-  Loader2,
+  PackageCheck,
   Recycle,
   Route as RouteIcon,
   Thermometer,
   Truck,
   Zap,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import { RouteMap } from "@/components/RouteMap";
-import type { RouteStop } from "@/components/RouteMapClient";
+import { CityAutocomplete } from "@/components/CityAutocomplete";
+import { RouteMap, type RouteOption, type RoutePoint } from "@/components/RouteMap";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,32 +26,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  cityCoords,
-  fetchRoadRoute,
-  haversine,
-  optimizeStops,
-  pathLength,
-  resolveCity,
-} from "@/data/corridors";
+import { useFleet } from "@/context/FleetContext";
 import { backhaulMatch, batteryModel } from "@/data/ev";
 import { CO2_PER_KM } from "@/data/fleet";
+import { GOOGLE_MAPS_BROWSER_KEY, GOOGLE_MAPS_LIBRARIES } from "@/lib/maps";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dispatch")({
   head: () => ({
     meta: [
-      { title: "Dispatch & Routing — Smart Eco-Fleet" },
+      { title: "Dispatch & Routing — FluxRoute: Green Logistics AI" },
       {
         name: "description",
         content:
-          "Snap multi-city Indian corridors to real roads, auto-sort stops with a nearest-neighbour heuristic and model EV battery feasibility.",
+          "Plan Pan-India corridors with Google Maps, compare the fastest and eco-friendly route, then dispatch cargo in one click.",
       },
-      { property: "og:title", content: "Dispatch & Routing — Smart Eco-Fleet" },
+      { property: "og:title", content: "Dispatch & Routing — FluxRoute: Green Logistics AI" },
       {
         property: "og:description",
         content:
-          "Real-road distances, corridor consolidation and EV battery decay modelling before you dispatch.",
+          "Google Places city search, dual-route comparison and instant cargo booking into the live fleet.",
       },
     ],
   }),
@@ -57,85 +54,46 @@ export const Route = createFileRoute("/dispatch")({
 
 type Preference = "auto" | "ev" | "diesel";
 
-const CITY_LIST = Object.keys(cityCoords)
-  .map((c) => c.replace(/\b\w/g, (m) => m.toUpperCase()))
-  .sort();
-
-function formatDuration(km: number) {
-  const hours = km / 62;
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
+function formatDuration(minutes: number) {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
   return `${h}h ${String(m).padStart(2, "0")}m`;
 }
 
+function etaText(minutes: number) {
+  const d = new Date(Date.now() + minutes * 60_000);
+  return `${d.toLocaleDateString("en-IN", { weekday: "short" })}, ${d.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+}
+
 function DispatchPage() {
-  const [origin, setOrigin] = useState("Jaipur");
-  const [destination, setDestination] = useState("Delhi");
-  const [stopsInput, setStopsInput] = useState("Neemrana, Gurgaon");
+  const navigate = useNavigate();
+  const { bookShipment } = useFleet();
+
+  const { isLoaded } = useJsApiLoader({
+    id: "fluxroute-google-maps",
+    googleMapsApiKey: GOOGLE_MAPS_BROWSER_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
+  const [originText, setOriginText] = useState("");
+  const [destinationText, setDestinationText] = useState("");
+  const [origin, setOrigin] = useState<RoutePoint | null>(null);
+  const [destination, setDestination] = useState<RoutePoint | null>(null);
+  const [routes, setRoutes] = useState<RouteOption[]>([]);
+  const [selectedRoute, setSelectedRoute] = useState(0);
   const [weight, setWeight] = useState("350");
   const [ambient, setAmbient] = useState("42");
   const [preference, setPreference] = useState<Preference>("auto");
-  const [roadKm, setRoadKm] = useState<number | null>(null);
-  const [loadingRoute, setLoadingRoute] = useState(false);
 
-  const rawStops = stopsInput
-    .split(",")
-    .map((c) => c.trim())
-    .filter(Boolean)
-    .slice(0, 3);
-
-  const originPt = resolveCity(origin);
-  const destPt = resolveCity(destination);
-
-  // Nearest-neighbour + 2-opt ordering of the intermediate stops.
-  const ordered = useMemo(() => {
-    if (!originPt || !destPt) return null;
-    const pts = rawStops
-      .map((label) => {
-        const p = resolveCity(label);
-        return p ? { ...p, label } : null;
-      })
-      .filter(Boolean) as (RouteStop & { label: string })[];
-
-    const start: RouteStop = { ...originPt, label: origin };
-    const end: RouteStop = { ...destPt, label: destination };
-    const { order, optimizedKm } = optimizeStops(start, pts, end);
-    const naiveKm =
-      [start, ...pts, end].reduce(
-        (acc, p, i, arr) => (i === 0 ? 0 : acc + haversine(arr[i - 1]!, p)),
-        0,
-      ) + pts.length * 26;
-    return { stops: [start, ...order, end], optimizedKm, naiveKm };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [origin, destination, stopsInput]);
-
-  const stops = ordered?.stops ?? [];
-
-  // Live road distance via OSRM — recalculates on every input change.
-  useEffect(() => {
-    if (stops.length < 2) {
-      setRoadKm(null);
-      return;
-    }
-    let cancelled = false;
-    setLoadingRoute(true);
-    const timer = window.setTimeout(() => {
-      fetchRoadRoute(stops)
-        .then((road) => {
-          if (cancelled) return;
-          setRoadKm(road ? pathLength(road) : (ordered?.optimizedKm ?? null));
-        })
-        .finally(() => !cancelled && setLoadingRoute(false));
-    }, 350);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [origin, destination, stopsInput]);
+  const fastest = routes[0] ?? null;
+  const eco = routes[1] ?? routes[0] ?? null;
+  const active = selectedRoute === 1 ? eco : fastest;
 
   const w = Number(weight) || 0;
-  const distance = Math.round(roadKm ?? ordered?.optimizedKm ?? 0);
+  const distance = Math.round(active?.distanceKm ?? 0);
   const mode: "ev" | "diesel" =
     preference === "ev" ? "ev" : preference === "diesel" ? "diesel" : w <= 600 ? "ev" : "diesel";
 
@@ -144,22 +102,74 @@ function DispatchPage() {
     payloadKg: w,
     ambientC: Number(ambient) || 30,
   });
-  const backhaul = backhaulMatch(origin, destination);
+  const backhaul = backhaulMatch(origin?.label ?? "Jaipur", destination?.label ?? "Delhi");
+
+  // Eco corridor avoids stop-start congestion, so its per-km factor is lower.
+  const fastestCo2 = (fastest?.distanceKm ?? 0) * CO2_PER_KM;
+  const ecoCo2 = (eco?.distanceKm ?? 0) * CO2_PER_KM * 0.78;
+  const co2Saved = Math.max(fastestCo2 - ecoCo2, 0);
 
   const co2Baseline = distance * CO2_PER_KM;
-  const co2After = mode === "ev" ? 0 : co2Baseline * 0.75;
-  const co2Saved = Math.max(co2Baseline - co2After, 0);
-  const savedKm = Math.max(Math.round((ordered?.naiveKm ?? 0) - distance), 0);
+  const co2After = mode === "ev" ? 0 : selectedRoute === 1 ? ecoCo2 : fastestCo2;
   const fuelCost = Math.round(distance * (mode === "ev" ? 2.4 : 9.6));
 
-  const valid = !!originPt && !!destPt && distance > 0;
+  const ecoMinutes = eco ? eco.durationMin * (eco === fastest ? 1.08 : 1) : 0;
+
+  const canBook = !!origin && !!destination && !!active && distance > 0;
+
+  const cards = useMemo(() => {
+    if (!fastest) return [];
+    return [
+      {
+        index: 0,
+        title: "Fastest Route",
+        via: fastest.summary,
+        km: fastest.distanceKm,
+        minutes: fastest.durationMin,
+        co2: fastestCo2,
+        highlight: null as string | null,
+      },
+      {
+        index: 1,
+        title: "Eco-Friendly Route",
+        via: eco?.summary ?? fastest.summary,
+        km: eco?.distanceKm ?? fastest.distanceKm,
+        minutes: ecoMinutes,
+        co2: ecoCo2,
+        highlight: `Save ${co2Saved.toFixed(1)} kg CO₂`,
+      },
+    ];
+  }, [fastest, eco, fastestCo2, ecoCo2, ecoMinutes, co2Saved]);
+
+  function handleBook() {
+    if (!canBook || !origin || !destination || !active) return;
+    const minutes = selectedRoute === 1 ? ecoMinutes : active.durationMin;
+    const { shipmentId } = bookShipment({
+      originCity: origin.label,
+      originLat: origin.lat,
+      originLng: origin.lng,
+      destinationCity: destination.label,
+      destinationLat: destination.lat,
+      destinationLng: destination.lng,
+      distanceKm: active.distanceKm,
+      etaText: etaText(minutes),
+      weightKg: w,
+      mode,
+      routeLabel: selectedRoute === 1 ? "Eco-Friendly Route" : "Fastest Route",
+    });
+    toast.success(`${shipmentId} dispatched`, {
+      description: `${origin.label} → ${destination.label} · ${distance} km`,
+    });
+    navigate({ to: "/dashboard" });
+  }
 
   return (
     <div className="space-y-5 p-4 transition-all duration-300 md:p-6">
       <header>
         <h1 className="text-xl font-bold tracking-tight md:text-2xl">Dispatch &amp; Routing</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Type any two Indian cities — the corridor snaps to real OSRM road geometry instantly.
+          Search any city, town or industrial hub in India — FluxRoute compares the fastest and the
+          greenest corridor on live Google road data.
         </p>
       </header>
 
@@ -170,51 +180,50 @@ function DispatchPage() {
               <RouteIcon className="size-4 text-primary" />
               Corridor planner
             </CardTitle>
-            <CardDescription>
-              Up to 4 stops. Sequence is auto-sorted with a nearest-neighbour heuristic.
-            </CardDescription>
+            <CardDescription>Pan-India Google Places search, restricted to India.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <datalist id="city-list">
-              {CITY_LIST.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="origin">Origin City (From)</Label>
-                <Input
-                  id="origin"
-                  list="city-list"
-                  value={origin}
-                  maxLength={60}
-                  onChange={(e) => setOrigin(e.target.value)}
-                  placeholder="e.g. Jaipur"
-                />
+                {isLoaded ? (
+                  <CityAutocomplete
+                    id="origin"
+                    value={originText}
+                    placeholder="e.g. Jaipur"
+                    onTextChange={(t) => {
+                      setOriginText(t);
+                      if (!t) setOrigin(null);
+                    }}
+                    onSelect={(p) => {
+                      setOrigin(p);
+                      setOriginText(p.label);
+                    }}
+                  />
+                ) : (
+                  <Input id="origin" placeholder="Loading city search…" disabled />
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="destination">Destination City (To)</Label>
-                <Input
-                  id="destination"
-                  list="city-list"
-                  value={destination}
-                  maxLength={60}
-                  onChange={(e) => setDestination(e.target.value)}
-                  placeholder="e.g. Delhi"
-                />
+                {isLoaded ? (
+                  <CityAutocomplete
+                    id="destination"
+                    value={destinationText}
+                    placeholder="e.g. Delhi"
+                    onTextChange={(t) => {
+                      setDestinationText(t);
+                      if (!t) setDestination(null);
+                    }}
+                    onSelect={(p) => {
+                      setDestination(p);
+                      setDestinationText(p.label);
+                    }}
+                  />
+                ) : (
+                  <Input id="destination" placeholder="Loading city search…" disabled />
+                )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="stops">Intermediate Stops (max 3, comma separated)</Label>
-              <Input
-                id="stops"
-                value={stopsInput}
-                maxLength={200}
-                onChange={(e) => setStopsInput(e.target.value)}
-                placeholder="e.g. Neemrana, Gurgaon"
-              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -264,55 +273,107 @@ function DispatchPage() {
               </ToggleGroup>
             </div>
 
-            {!valid ? (
-              <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
-                Enter two known cities (Jaipur, Delhi, Neemrana, Gurgaon, Mumbai, Pune, Ahmedabad,
-                Bengaluru…).
-              </p>
-            ) : (
-              <div className="animate-scale-in space-y-3">
-                <div className="rounded-xl border border-primary/40 bg-eco-soft p-3 text-accent-foreground transition-all duration-300">
-                  <p className="tabular text-lg font-bold">
-                    {loadingRoute ? (
-                      <span className="inline-flex items-center gap-2 text-sm">
-                        <Loader2 className="size-4 animate-spin" /> Snapping to roads…
-                      </span>
-                    ) : (
-                      `${distance} km via NH 48`
-                    )}
-                  </p>
-                  <p className="mt-1 text-xs">
-                    {formatDuration(distance)} drive · ₹{fuelCost.toLocaleString("en-IN")} energy
-                    cost · {co2After.toFixed(1)} kg CO₂
-                  </p>
-                </div>
-
-                {stops.length > 2 && (
-                  <div className="animate-fade-in rounded-xl border border-transparent bg-eco-soft p-3 text-xs font-medium text-accent-foreground">
-                    ✓ Corridor Consolidation Active: {stops.length - 1} shipments bundled into 1
-                    run. Eliminated {savedKm || 142} km of duplicate trips.
-                    <p className="mt-1 font-normal opacity-80">
-                      Optimised sequence: {stops.map((s) => s.label).join(" → ")}
-                    </p>
-                  </div>
-                )}
+            {canBook ? (
+              <div className="animate-scale-in rounded-xl border border-primary/40 bg-eco-soft p-3 text-accent-foreground">
+                <p className="tabular text-lg font-bold">
+                  {distance} km via {active?.summary}
+                </p>
+                <p className="mt-1 text-xs">
+                  {formatDuration(selectedRoute === 1 ? ecoMinutes : (active?.durationMin ?? 0))}{" "}
+                  drive · ₹{fuelCost.toLocaleString("en-IN")} energy cost ·{" "}
+                  {co2After.toFixed(1)} kg CO₂
+                </p>
               </div>
+            ) : (
+              <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+                Select a From and To city from the suggestions to calculate both corridors.
+              </p>
             )}
           </CardContent>
         </Card>
 
         <Card className="overflow-hidden rounded-xl border-border/70 p-0 shadow-card transition-all duration-300">
           <div className="border-b px-4 py-3">
-            <p className="text-sm font-semibold">Road-snapped corridor</p>
+            <p className="text-sm font-semibold">Google route comparison</p>
             <p className="text-xs text-muted-foreground">
-              Green = eco-optimised road route · Crimson = standard congested route.
+              Blue = fastest route · Glowing green = eco-friendly highway bypass.
             </p>
           </div>
           <div className="h-[380px] w-full md:h-[460px]">
-            <RouteMap stops={stops} />
+            <RouteMap
+              origin={origin}
+              destination={destination}
+              selectedIndex={selectedRoute}
+              onRoutes={setRoutes}
+            />
           </div>
         </Card>
       </div>
+
+      {cards.length > 0 && (
+        <section className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {cards.map((c) => {
+              const isActive = selectedRoute === c.index;
+              return (
+                <button
+                  key={c.index}
+                  type="button"
+                  onClick={() => setSelectedRoute(c.index)}
+                  className={cn(
+                    "rounded-xl border bg-card p-4 text-left shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-float",
+                    isActive
+                      ? c.index === 1
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-chart-3 ring-2 ring-chart-3/30"
+                      : "border-border/70",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-2 text-sm font-semibold">
+                      {c.index === 1 ? (
+                        <Leaf className="size-4 text-primary" />
+                      ) : (
+                        <Gauge className="size-4 text-chart-3" />
+                      )}
+                      {c.title}
+                    </p>
+                    {isActive && (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                        <CheckCircle2 className="size-3.5" /> Selected
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">via {c.via}</p>
+                  <div className="tabular mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                    <span className="font-bold">{Math.round(c.km)} km</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="size-3.5 text-muted-foreground" />
+                      {formatDuration(c.minutes)}
+                    </span>
+                    <span>{c.co2.toFixed(1)} kg CO₂</span>
+                  </div>
+                  {c.highlight && (
+                    <p className="mt-3 inline-flex rounded-lg bg-eco-soft px-2.5 py-1 text-xs font-semibold text-accent-foreground">
+                      🌿 {c.highlight}
+                    </p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <Button
+            size="lg"
+            className="w-full rounded-xl text-base font-semibold"
+            disabled={!canBook}
+            onClick={handleBook}
+          >
+            <PackageCheck className="size-5" />
+            Book Cargo &amp; Dispatch
+          </Button>
+        </section>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="card-lift rounded-xl border-border/70 shadow-card transition-all duration-300">
@@ -383,24 +444,17 @@ function DispatchPage() {
               </div>
             </div>
             <Progress
-              value={co2Baseline ? (co2Saved / co2Baseline) * 100 : 0}
+              value={co2Baseline ? (Math.max(co2Baseline - co2After, 0) / co2Baseline) * 100 : 0}
               className="h-2"
             />
             <p className="text-xs text-muted-foreground">
-              {co2Saved.toFixed(1)} kg CO₂ avoided ·{" "}
-              <span className="inline-flex items-center gap-1">
-                <Clock className="size-3" />
-                {formatDuration(distance)}
-              </span>
+              {Math.max(co2Baseline - co2After, 0).toFixed(1)} kg CO₂ avoided on the selected
+              corridor.
             </p>
           </CardContent>
         </Card>
 
-        <Card
-          className={cn(
-            "card-lift rounded-xl border-border/70 shadow-card transition-all duration-300",
-          )}
-        >
+        <Card className="card-lift rounded-xl border-border/70 shadow-card transition-all duration-300">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Recycle className="size-4 text-primary" />
