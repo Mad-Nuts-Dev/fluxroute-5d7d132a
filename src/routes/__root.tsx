@@ -127,6 +127,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <FleetProvider>
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background transition-all duration-300">
           <AppSidebar />
