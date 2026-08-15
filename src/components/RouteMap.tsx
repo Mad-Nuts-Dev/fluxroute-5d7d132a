@@ -9,7 +9,7 @@ import {
   mapOptions,
   useIsDarkTheme,
 } from "@/lib/maps";
-import { boundsOf, fetchOsrmRoutes, pointAlongPath, truckIcon } from "@/lib/osrm";
+import { boundsOf, fallbackRoutes, fetchOsrmRoutes, pointAlongPath, truckIcon } from "@/lib/osrm";
 
 export type RoutePoint = { lat: number; lng: number; label: string };
 
