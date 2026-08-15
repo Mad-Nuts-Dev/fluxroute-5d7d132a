@@ -22,7 +22,7 @@ export async function fetchOsrmRoutes(
     `${origin.lng},${origin.lat};${destination.lng},${destination.lat}` +
     `?overview=full&geometries=geojson&alternatives=true`;
 
-  const res = await fetch(url, { signal });
+  const res = await fetch(url, { signal: signal ?? null });
   if (!res.ok) throw new Error(`OSRM request failed (${res.status})`);
   const json = (await res.json()) as {
     code?: string;
