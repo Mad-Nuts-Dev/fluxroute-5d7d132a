@@ -114,12 +114,25 @@ export function FleetMap({
         mapRef.current = null;
       }}
     >
-      {selected && (
+      {selected && corridor.length > 0 && (
         <>
           <PolylineF
             path={corridor}
-            options={{ strokeColor: "#10b981", strokeOpacity: 0.95, strokeWeight: 5 }}
+            options={{
+              strokeColor: "#10B981",
+              strokeOpacity: 0.22,
+              strokeWeight: 14,
+              zIndex: 1,
+            }}
           />
+          <PolylineF
+            path={corridor}
+            options={{ strokeColor: "#10B981", strokeOpacity: 1, strokeWeight: 5, zIndex: 2 }}
+          />
+        </>
+      )}
+      {selected && (
+        <>
           <MarkerF
             position={{ lat: selected.origin.lat, lng: selected.origin.lng }}
             label={{ text: "A", color: "#ffffff", fontWeight: "700" }}
