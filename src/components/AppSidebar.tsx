@@ -36,8 +36,8 @@ export function AppSidebar() {
           </span>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">Smart Eco-Fleet</p>
-              <p className="truncate text-xs text-muted-foreground">Logistics Control</p>
+              <p className="truncate text-sm font-semibold">FluxRoute</p>
+              <p className="truncate text-xs text-muted-foreground">Green Logistics AI</p>
             </div>
           )}
         </div>

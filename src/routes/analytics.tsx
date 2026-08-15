@@ -24,13 +24,13 @@ import { sendDelayAlert } from "@/lib/telegram.functions";
 export const Route = createFileRoute("/analytics")({
   head: () => ({
     meta: [
-      { title: "Analytics & Alerts — Smart Eco-Fleet" },
+      { title: "Analytics & Alerts — FluxRoute: Green Logistics AI" },
       {
         name: "description",
         content:
           "Review driver eco-scores and simulate customer delay alerts before they reach the road.",
       },
-      { property: "og:title", content: "Analytics & Alerts — Smart Eco-Fleet" },
+      { property: "og:title", content: "Analytics & Alerts — FluxRoute: Green Logistics AI" },
       {
         property: "og:description",
         content: "Driver eco-scores, efficiency coaching and simulated traffic delay notifications.",
@@ -52,7 +52,7 @@ function downloadEsgCertificate() {
   const avgScore = Math.round(drivers.reduce((a, d) => a + d.ecoScore, 0) / drivers.length);
   const offsetKg = (totalTrips * 3.42).toFixed(1);
   const rows = [
-    ["Smart Eco-Fleet — ESG Green Certificate"],
+    ["FluxRoute: Green Logistics AI — ESG Green Certificate"],
     ["Generated", now.toISOString()],
     ["Reporting period", "Current week"],
     ["Total trips", String(totalTrips)],
@@ -282,7 +282,7 @@ function AnalyticsPage() {
                 <p className="min-w-0 flex-1 truncate text-xs font-semibold">WhatsApp</p>
                 <span className="shrink-0 text-[10px] text-muted-foreground">now</span>
               </div>
-              <p className="mt-2 text-xs font-semibold">Smart Eco-Fleet Alert</p>
+              <p className="mt-2 text-xs font-semibold">FluxRoute Alert</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 ⚠️ Shipment delayed by {delayMinutes} mins due to heavy traffic. Live tracking link:
                 eco-fleet-buddy.lovable.app

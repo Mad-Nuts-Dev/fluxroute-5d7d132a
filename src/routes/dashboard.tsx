@@ -22,13 +22,13 @@ import { shipments, vehicles, type Shipment } from "@/data/fleet";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Live Fleet Map — Smart Eco-Fleet" },
+      { title: "Live Fleet Map — FluxRoute: Green Logistics AI" },
       {
         name: "description",
         content:
           "Track diesel and electric vehicles live, monitor CO2 savings and follow every active shipment.",
       },
-      { property: "og:title", content: "Live Fleet Map — Smart Eco-Fleet" },
+      { property: "og:title", content: "Live Fleet Map — FluxRoute: Green Logistics AI" },
       {
         property: "og:description",
         content: "Live vehicle positions, emissions savings and shipment status in one view.",

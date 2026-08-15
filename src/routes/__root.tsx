@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Smart Eco-Fleet — Logistics Control" },
+      { title: "FluxRoute: Green Logistics AI" },
       {
         name: "description",
         content:
@@ -135,7 +135,7 @@ function RootComponent() {
               <ThemeToggle />
               <SidebarTrigger />
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">Smart Eco-Fleet Logistics</p>
+                <p className="truncate text-sm font-semibold">FluxRoute: Green Logistics AI</p>
               </div>
             </header>
             <main className="min-w-0 flex-1">
