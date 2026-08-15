@@ -9,6 +9,8 @@ import {
   Gauge,
   Leaf,
   PackageCheck,
+  Plus,
+  Trash2,
   Recycle,
   Route as RouteIcon,
   Thermometer,
@@ -87,12 +89,33 @@ function DispatchPage() {
   const [weight, setWeight] = useState("350");
   const [ambient, setAmbient] = useState("42");
   const [preference, setPreference] = useState<Preference>("auto");
+  const [stops, setStops] = useState<
+    { id: number; text: string; point: RoutePoint | null; weight: string }[]
+  >([]);
+
+  const stopPoints = useMemo(
+    () => stops.map((s) => s.point).filter((p): p is RoutePoint => !!p),
+    [stops],
+  );
+
+  function addStop() {
+    if (stops.length >= 5) return;
+    setStops((prev) => [...prev, { id: Date.now(), text: "", point: null, weight: "100" }]);
+  }
+  function updateStop(id: number, patch: Partial<{ text: string; point: RoutePoint | null; weight: string }>) {
+    setStops((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+  function removeStop(id: number) {
+    setStops((prev) => prev.filter((s) => s.id !== id));
+  }
 
   const fastest = routes[0] ?? null;
   const eco = routes[1] ?? routes[0] ?? null;
   const active = selectedRoute === 1 ? eco : fastest;
 
   const w = Number(weight) || 0;
+  const stopsPayload = stops.reduce((sum, s) => sum + (Number(s.weight) || 0), 0);
+  const totalPayload = w + stopsPayload;
   const distance = Math.round(active?.distanceKm ?? 0);
   const mode: "ev" | "diesel" =
     preference === "ev" ? "ev" : preference === "diesel" ? "diesel" : w <= 600 ? "ev" : "diesel";
@@ -153,7 +176,7 @@ function DispatchPage() {
       destinationLng: destination.lng,
       distanceKm: active.distanceKm,
       etaText: etaText(minutes),
-      weightKg: w,
+      weightKg: totalPayload,
       mode,
       routeLabel: selectedRoute === 1 ? "Eco-Friendly Route" : "Fastest Route",
     });
@@ -226,6 +249,68 @@ function DispatchPage() {
               </div>
             </div>
 
+            <div className="space-y-3 rounded-xl border border-dashed border-border/70 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold">Intermediate drop-off stops</p>
+                  <p className="text-xs text-muted-foreground">
+                    Up to 5 stops · sequence auto-optimised by the routing engine.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={addStop}
+                  disabled={stops.length >= 5}
+                >
+                  <Plus className="size-4" />
+                  Add Drop-off Stop
+                </Button>
+              </div>
+
+              {stops.map((s, i) => (
+                <div key={s.id} className="grid gap-2 sm:grid-cols-[1fr_130px_auto] sm:items-end">
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`stop-${s.id}`}>Stop {i + 1} City</Label>
+                    {isLoaded ? (
+                      <CityAutocomplete
+                        id={`stop-${s.id}`}
+                        value={s.text}
+                        placeholder="e.g. Agra"
+                        onTextChange={(t) => updateStop(s.id, { text: t, ...(t ? {} : { point: null }) })}
+                        onSelect={(p) => updateStop(s.id, { point: p, text: p.label })}
+                      />
+                    ) : (
+                      <Input id={`stop-${s.id}`} placeholder="Loading city search…" disabled />
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`stop-w-${s.id}`}>Drop-off (kg)</Label>
+                    <Input
+                      id={`stop-w-${s.id}`}
+                      type="number"
+                      min={0}
+                      max={5000}
+                      value={s.weight}
+                      onChange={(e) => updateStop(s.id, { weight: e.target.value })}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Remove stop ${i + 1}`}
+                    className="rounded-xl text-destructive"
+                    onClick={() => removeStop(s.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="weight">Payload (kg)</Label>
@@ -250,6 +335,12 @@ function DispatchPage() {
                 />
               </div>
             </div>
+
+            <p className="tabular text-xs text-muted-foreground">
+              Total Fleet Payload: <span className="font-semibold text-foreground">{totalPayload} kg</span>{" "}
+              ({w} kg final destination
+              {stops.length > 0 ? ` + ${stopsPayload} kg across ${stops.length} drop-off${stops.length > 1 ? "s" : ""}` : ""})
+            </p>
 
             <div className="space-y-2">
               <Label>Vehicle Type Preference</Label>
@@ -303,6 +394,7 @@ function DispatchPage() {
             <RouteMap
               origin={origin}
               destination={destination}
+              stops={stopPoints}
               selectedIndex={selectedRoute}
               onRoutes={setRoutes}
             />
