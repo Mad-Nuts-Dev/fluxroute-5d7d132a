@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import { useEffect, useState } from "react";
 
 /** Places is needed for the Pan-India city Autocomplete inputs. */
