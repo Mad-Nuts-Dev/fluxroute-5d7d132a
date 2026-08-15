@@ -132,10 +132,12 @@ function RootComponent() {
           <AppSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/85 px-3 backdrop-blur transition-all duration-300">
-              <ThemeToggle />
               <SidebarTrigger />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">FluxRoute: Green Logistics AI</p>
+              </div>
+              <div className="ml-auto flex items-center">
+                <ThemeToggle />
               </div>
             </header>
             <main className="min-w-0 flex-1">
