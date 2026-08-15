@@ -150,7 +150,7 @@ export function FleetMap({
         return (
           <MarkerF
             key={v.id}
-            position={{ lat: v.lat, lng: v.lng }}
+            position={active && snapped ? snapped : { lat: v.lat, lng: v.lng }}
             onClick={() => {
               onSelect(v.id);
               setOpenId(v.id);
