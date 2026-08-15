@@ -1,6 +1,6 @@
 import { GoogleMap, InfoWindowF, MarkerF, PolylineF, useJsApiLoader } from "@react-google-maps/api";
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useFleet } from "@/context/FleetContext";
 import { drivers } from "@/data/fleet";
@@ -11,6 +11,7 @@ import {
   mapOptions,
   useIsDarkTheme,
 } from "@/lib/maps";
+import { boundsOf, fetchOsrmRoutes, pointAlongPath, type LatLngLit } from "@/lib/osrm";
 
 function MapFallback({ message = "Loading live fleet positions…" }: { message?: string }) {
   return (
