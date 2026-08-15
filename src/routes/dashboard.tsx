@@ -17,7 +17,8 @@ import { ShipmentBadge } from "@/components/ShipmentBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { shipments, vehicles, type Shipment } from "@/data/fleet";
+import { type Shipment } from "@/data/fleet";
+import { useFleet } from "@/context/FleetContext";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -63,6 +64,7 @@ const metrics = [
 ];
 
 function Dashboard() {
+  const { shipments, vehicles } = useFleet();
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [openShipment, setOpenShipment] = useState<Shipment | null>(null);
 
@@ -74,7 +76,7 @@ function Dashboard() {
             Live Fleet Map
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Real-time positions for all four vehicles across India.
+            Real-time positions for every active vehicle across India.
           </p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-eco-soft px-3 py-1.5 text-xs font-semibold text-accent-foreground">
