@@ -16,11 +16,16 @@ export async function fetchOsrmRoutes(
   origin: LatLngLit,
   destination: LatLngLit,
   signal?: AbortSignal,
+  waypoints: LatLngLit[] = [],
 ): Promise<OsrmRoute[]> {
+  const points = [origin, ...waypoints, destination];
+  const hasStops = waypoints.length > 0;
+  const coords = points.map((p) => `${p.lng},${p.lat}`).join(";");
   const url =
-    `https://router.project-osrm.org/route/v1/driving/` +
-    `${origin.lng},${origin.lat};${destination.lng},${destination.lat}` +
-    `?overview=full&geometries=geojson&alternatives=true`;
+    `https://router.project-osrm.org/route/v1/driving/${coords}` +
+    `?overview=full&geometries=geojson&alternatives=${hasStops ? "false" : "true"}` +
+    // Let OSRM re-order the intermediate drop-offs into the most efficient sequence.
+    (hasStops ? "&source=first&destination=last&roundtrip=false" : "");
 
   const res = await fetch(url, { signal: signal ?? null });
   if (!res.ok) throw new Error(`OSRM request failed (${res.status})`);
@@ -36,7 +41,11 @@ export async function fetchOsrmRoutes(
 
   return json.routes.slice(0, 2).map((r, i) => ({
     index: i,
-    summary: i === 0 ? "Fastest highway corridor" : "Highway bypass corridor",
+    summary: hasStops
+      ? `Multi-stop corridor · ${waypoints.length} drop-off${waypoints.length > 1 ? "s" : ""}`
+      : i === 0
+        ? "Fastest highway corridor"
+        : "Highway bypass corridor",
     distanceKm: r.distance / 1000,
     durationMin: r.duration / 60,
     path: (r.geometry?.coordinates ?? []).map(([lng, lat]) => ({ lat, lng })),

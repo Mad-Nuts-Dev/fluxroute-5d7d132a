@@ -33,11 +33,13 @@ function MapFallback({ message }: { message: string }) {
 export function RouteMap({
   origin,
   destination,
+  stops = [],
   selectedIndex,
   onRoutes,
 }: {
   origin: RoutePoint | null;
   destination: RoutePoint | null;
+  stops?: RoutePoint[];
   selectedIndex: number;
   onRoutes: (routes: RouteOption[]) => void;
 }) {
@@ -63,7 +65,7 @@ export function RouteMap({
     setError(null);
     setLoading(true);
 
-    fetchOsrmRoutes(origin, destination, controller.signal)
+    fetchOsrmRoutes(origin, destination, controller.signal, stops)
       .then((result) => {
         if (controller.signal.aborted) return;
         if (!result.length) {
@@ -91,7 +93,14 @@ export function RouteMap({
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, origin?.lat, origin?.lng, destination?.lat, destination?.lng]);
+  }, [
+    isLoaded,
+    origin?.lat,
+    origin?.lng,
+    destination?.lat,
+    destination?.lng,
+    stops.map((s) => `${s.lat},${s.lng}`).join("|"),
+  ]);
 
   if (loadError) return <MapFallback message="Google Maps failed to load." />;
   if (!isLoaded) return <MapFallback message="Loading Google Maps…" />;
@@ -152,6 +161,13 @@ export function RouteMap({
             label={{ text: "A", color: "#ffffff", fontWeight: "700" }}
           />
         )}
+        {stops.map((s, i) => (
+          <MarkerF
+            key={`${s.lat},${s.lng},${i}`}
+            position={{ lat: s.lat, lng: s.lng }}
+            label={{ text: String(i + 1), color: "#ffffff", fontWeight: "700" }}
+          />
+        ))}
         {destination && (
           <MarkerF
             position={{ lat: destination.lat, lng: destination.lng }}
