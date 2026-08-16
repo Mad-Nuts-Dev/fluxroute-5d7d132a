@@ -1,104 +1,104 @@
-# EcoFleet Dispatch
+<div align="center">
+  <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=60" alt="FluxRoute Banner" width="100%" style="border-radius: 12px;"/>
 
-# Context
+  # 🌿 FluxRoute: Green Logistics AI
+  ### **Smart Fleet Coordination and Logistics Management Platform**
+  
+  *“Right Vehicle • Right Route • Right Shipment”*
 
-Build a complete React-based "Smart Eco-Fleet Logistics Platform" optimized for small fleet owners. It must be mobile-responsive, using Shadcn UI and Tailwind CSS. The app will act as a high-fidelity prototype, so it must use a local mock data state. Do not connect to Supabase, Firebase, or any external backend.
+  [![Smart India Hackathon 2026](https://img.shields.io/badge/SIH-2026-orange.svg)]()
+  [![Category: Software](https://img.shields.io/badge/Category-Software-blue.svg)]()
+  [![Live Demo](https://img.shields.io/badge/Live-MVP_Preview-success.svg)](https://fluxroute.lovable.app)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+</div>
 
-# Design & Aesthetic
+---
 
-The tone is modern, premium, clear, and highly functional. 
+## 🚀 Overview
 
-- Theme: Clean light mode with deep slate/charcoal text for high contrast.
+**FluxRoute** is an AI-powered, end-to-end green logistics and fleet coordination platform engineered to tackle rising fuel costs, inefficient vehicle utilization, and carbon emissions in freight transport. Built specifically for modern logistics operators, FluxRoute uses multi-objective route optimization, automated EV suitability matching, and real-time telemetry to ensure every delivery is fast, cost-efficient, and sustainable.
 
-- Accents: Use a vibrant, trusting eco-green for primary actions, badges, and success states.
+Developed for **Smart India Hackathon 2026 (Software Edition)** by Team **HEXA NEURONS**.
 
-- Typography: 'Inter' font. 
+---
 
-- UI Elements: Use generous padding, rounded corners (xl), subtle drop shadows on cards, and translucent surfaces for modals. 
+## ✨ Key Features & Modules
 
-# Data Structure (Mock Data)
+### 1. 🗺️ Live Fleet Map & Telemetry Dashboard
+* **Real-Time Visibility:** Interactive map interface tracking active fleet positions across realistic Indian transport corridors (e.g., Bengaluru to Hyderabad via NH 44).
+* **Dynamic Route Geometry:** Replaces old straight-line tracking with actual highway-snapped routing paths.
+* **Live Telemetry Popups:** Inspect active vehicle speeds, battery percentages (for EVs), fuel levels, and current shipment ETAs instantly[cite: 2].
 
-Initialize a robust mock state containing:
+### 2. ⚡ Dispatch & Routing Eco-Engine
+* **Pan-India Google Places Search:** Restrictive location search built for Indian cities, hubs, and industrial zones[cite: 2].
+* **Dynamic Stopover Waypoints:** Add intermediate drop-off cities with individual payload tracking on the fly[cite: 2].
+* **Dual-Corridor Comparison:** Simultaneously compute and render two distinct paths on the map:
+  * 🔵 **Fastest Route:** Optimized for minimum transit time.
+  * 🟢 **Eco-Friendly Highway Bypass:** Optimized for minimum $\text{CO}_2$ emissions.
+* **Smart EV vs. Diesel Matching:** Intelligent payload and distance validation that automatically assigns light shipments under optimal thresholds to zero-emission electric vehicles[cite: 2].
 
-- 4 Vehicles (2 Diesel Trucks, 2 Electric Vehicles with battery percentages).
+### 3. 📊 Analytics, Alerts & ESG Compliance
+* **Driver Eco-Scores:** Efficiency progress tracking (0–100 scale) for driver performance coaching.
+* **Automated ESG Reporting:** Generates certified $\text{CO}_2$ emission tracking reports per shipment to fulfill corporate sustainability mandates.
+* **Simulated Push Alerts:** Interactive simulation showcasing real-time traffic delay notifications delivered via WhatsApp/Telegram notification overlays[cite: 2].
 
-- 6 active shipments containing realistic Indian cities as destinations, weights (kg), and distances (km).
+---
 
-# Core Layout
+## 🛠️ Technology Stack
 
-Build a persistent, collapsible sidebar navigation with three main tabs:
+* **Frontend Framework:** React, Vite, TypeScript, Tailwind CSS
+* **UI Components:** Shadcn UI, Radix UI, Lucide Icons
+* **Mapping & Routing:** Google Maps JavaScript API (`@react-google-maps/api`), Google Directions Service with Waypoints, and OSRM (Open Source Routing Machine) road-snapping geometry.
+* **State Management:** Local mock state architecture for instantaneous high-fidelity prototyping and demo reliability.
+* **Notifications:** Telegram Bot API integration for real-time fleet operations alerts.
 
-1. Live Fleet Map (Default View)
+---
 
-2. Dispatch & Routing
+## 📈 Impact & Business Viability
 
-3. Analytics & Alerts
+* **Environmental Impact:** Directly cuts urban carbon footprints through precise $\text{CO}_2$ tracking per kilometer and automated EV fleet promotion[cite: 2].
+* **Economic Savings:** Achieves up to **15–20% reduction in fuel consumption** while eliminating empty return trips (*deadhead miles*) through smart backhaul matching[cite: 2].
+* **Commercial Model:** B2B SaaS subscription structured with tiered pricing based on fleet size, paired with enterprise analytics modules[cite: 2].
 
-# Page 1: Dashboard & Live Map
+---
 
-- Top Row: 3 metric cards using standard icons.
+## 🏃‍♂️ Getting Started Locally
 
-  - Card 1: "Total CO2 Saved Today: 42.8 kg" (Green trend arrow up).
+If you prefer running or testing the application locally on your machine, follow these steps:
 
-  - Card 2: "EV Fleet Utilization: 75%".
+### Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) (v18 or higher) and `npm` installed.
 
-  - Card 3: "Fuel Cost Savings: ₹2,450".
+### Installation Steps
 
-- Main Body: A large, interactive map component using Leaflet.js (react-leaflet). Render the 4 mock vehicles as custom map markers on the map.
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/Mad-Nuts-Dev/fluxroute-5d7d132a.git](https://github.com/Mad-Nuts-Dev/fluxroute-5d7d132a.git)
+2. Navigate to the project directory:
+   ```bash
+   cd fluxroute-5d7d132a
+3. Install dependencies:
+   ```bash
+   npm install
+4. Run the development server:
+   ```bash
+   npm run dev
+5. Open your browser and navigate to http://localhost:5173 to view the local prototype. 
 
-- Right Panel: A scrollable list of active shipments with UI status badges (In Transit, Delayed, Delivered).
+🌐 Live Prototype
+Explore the fully interactive hosted application live:
+👉 www.fluxroute.lovable.app
 
-# Page 2: Dispatch & Routing (The Eco-Engine)
+[cite: 2]
 
-- Create a clean form to assign a new shipment. Inputs needed: Shipment Weight (kg) and Destination Distance (km).
+👥 Team Information
+Team Name: HEXA NEURONS[cite: 2]
 
-- Primary Button: "Calculate Optimized Route".
+Competition: Smart India Hackathon 2026 (SIH)[cite: 2]
 
-- Interaction Logic: When the button is clicked, simulate a calculation state, then show one of two alert banners based on this rule:
+Problem Statement ID: Software PS-2[cite: 2]
 
-  - If Distance <= 150km AND Weight <= 200kg -> Show a green success banner: "Auto-Assigned to Electric Vehicle (Zero Emissions)".
+Problem Title: Smart Fleet Coordination and Logistics Management Platform[cite: 2]
 
-  - If conditions are not met -> Show a slate/orange warning banner: "Assigned to Diesel Fleet (Route exceeds EV capacity)".
-
-- Below the form, display a visual "Before vs. After" comparison card showing estimated CO2 saved (Assume CO2 = Distance * 0.21 kg/km).
-
-# Page 3: Driver Profiles & Alerts
-
-- Display a grid of driver profiles. Each profile card should have an "Eco-Score" progress bar (0-100) indicating their driving efficiency.
-
-- Add a prominent button labeled "Simulate Traffic Delay". 
-
-- Interaction Logic: When clicked, trigger a modal centered on the screen. The modal should be styled to look exactly like a mobile phone lock screen displaying a simulated WhatsApp push notification that reads: "Smart Eco-Fleet Alert: Shipment delayed by 20 mins due to traffic. Live track your package here."
-
-# Guardrails & Instructions
-
-- Location + Behavior: Ensure the map loads cleanly without grey boxes. If Leaflet CSS is missing, ensure it is imported.
-
-- Speak Atomic: Use proper UI vocabulary (cards, badges, modals, tooltips) throughout the build.
-
-- Do not use "Lorem Ipsum". Use real, contextual text for all headers and descriptions.
-
-- Ensure the layout breaks down cleanly on mobile screens (sidebar becomes a hamburger menu).
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://eco-fleet-buddy.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8acfd2e3-dd43-4f49-b50a-0b5f02d66c32).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+📝 License
+This project is open-source and available under the MIT License.
