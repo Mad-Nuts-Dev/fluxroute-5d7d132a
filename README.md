@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=60" alt="FluxRoute Banner" width="100%" style="border-radius: 12px;"/>
+  <img src="https://github.com/Mad-Nuts-Dev/fluxroute-5d7d132a/raw/main/src/Gemini_Generated_Image_6mwaue6mwaue6mwa.png" alt="FluxRoute Banner" width="100%" style="border-radius: 12px;"/>
 
   # 🌿 FluxRoute: Green Logistics AI
   ### **Smart Fleet Coordination and Logistics Management Platform**
