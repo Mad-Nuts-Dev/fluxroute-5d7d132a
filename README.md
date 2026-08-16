@@ -72,33 +72,41 @@ Make sure you have [Node.js](https://nodejs.org/) (v18 or higher) and `npm` inst
 ### Installation Steps
 
 1. **Clone the repository:**
+   
    ```bash
    git clone [https://github.com/Mad-Nuts-Dev/fluxroute-5d7d132a.git](https://github.com/Mad-Nuts-Dev/fluxroute-5d7d132a.git)
-2. Navigate to the project directory:
+   
+3. Navigate to the project directory:
+   
    ```bash
    cd fluxroute-5d7d132a
-3. Install dependencies:
+   
+4. Install dependencies:
+   
    ```bash
    npm install
-4. Run the development server:
+   
+5. Run the development server:
+   
    ```bash
    npm run dev
-5. Open your browser and navigate to http://localhost:5173 to view the local prototype. 
+   
+6. Open your browser and navigate to http://localhost:5173 to view the local prototype. 
 
 🌐 Live Prototype
 Explore the fully interactive hosted application live:
 👉 www.fluxroute.lovable.app
 
-[cite: 2]
+
 
 👥 Team Information
-Team Name: HEXA NEURONS[cite: 2]
+Team Name: HEXA NEURONS
 
-Competition: Smart India Hackathon 2026 (SIH)[cite: 2]
+Competition: Smart India Hackathon 2026 (SIH)
 
-Problem Statement ID: Software PS-2[cite: 2]
+Problem Statement ID: Software PS-2
 
-Problem Title: Smart Fleet Coordination and Logistics Management Platform[cite: 2]
+Problem Title: Smart Fleet Coordination and Logistics Management Platform
 
 📝 License
 This project is open-source and available under the MIT License.
