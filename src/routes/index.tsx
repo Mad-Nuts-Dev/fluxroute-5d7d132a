@@ -9,9 +9,15 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 
+import FleetMap from "@/components/FleetMap";
+import MaritimeMap, { type Disruption } from "@/components/MaritimeMap";
+import MaritimeOptimizer from "@/components/MaritimeOptimizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,7 +67,127 @@ const steps = [
   },
 ];
 
+const KPIS: Record<Disruption, { label: string; value: string; hot?: boolean }[]> = {
+  normal: [
+    { label: "Strategic Reserves (SPR)", value: "9.5 Days" },
+    { label: "Import Dependency", value: "87.8% (4.82M bpd Intake)" },
+    { label: "Active VLCC Fleet", value: "38 Tankers" },
+    { label: "Resilience Index", value: "86 / 100" },
+  ],
+  hormuz: [
+    { label: "Strategic Reserves (SPR)", value: "4.1 Days (Drawdown Active)", hot: true },
+    { label: "Import Dependency", value: "87.8% (4.82M bpd Intake)" },
+    { label: "Active VLCC Fleet", value: "14 Diverting via Cape", hot: true },
+    { label: "Resilience Index", value: "38 / 100", hot: true },
+  ],
+  redsea: [
+    { label: "Strategic Reserves (SPR)", value: "7.2 Days" },
+    { label: "Import Dependency", value: "87.8% (4.82M bpd Intake)" },
+    { label: "Active VLCC Fleet", value: "38 Tankers" },
+    { label: "Resilience Index", value: "64 / 100" },
+  ],
+};
+
+const SIMS: { id: Disruption; label: string; cls: string }[] = [
+  { id: "normal", label: "Normal Flow", cls: "bg-primary text-primary-foreground" },
+  {
+    id: "hormuz",
+    label: "Hormuz Blockade",
+    cls: "bg-destructive text-destructive-foreground animate-pulse",
+  },
+  { id: "redsea", label: "Red Sea Threat", cls: "bg-warn text-background animate-pulse" },
+];
+
+function EnergyView() {
+  const [disruption, setDisruption] = useState<Disruption>("normal");
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-5 px-4 pb-14">
+      <div className="flex flex-wrap gap-2">
+        {SIMS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setDisruption(s.id)}
+            className={cn(
+              "rounded-xl border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300",
+              disruption === s.id ? s.cls : "bg-card text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {KPIS[disruption].map((k) => (
+          <Card
+            key={k.label}
+            className={cn(
+              "rounded-2xl border-border/70 bg-card/80 shadow-card backdrop-blur transition-all duration-300",
+              k.hot && "border-destructive/50",
+            )}
+          >
+            <CardContent className="p-5">
+              <p className="text-xs text-muted-foreground">{k.label}</p>
+              <p
+                className={cn(
+                  "tabular mt-1 text-xl font-bold transition-colors duration-300",
+                  k.hot && "text-destructive",
+                )}
+              >
+                {k.value}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <MaritimeMap disruption={disruption} />
+        </div>
+        <MaritimeOptimizer disruption={disruption} />
+      </div>
+    </div>
+  );
+}
+
 function Landing() {
+  const [tab, setTab] = useState<"energy" | "fleet">("energy");
+
+  return (
+    <div className="pt-6">
+      <div className="mx-auto mb-5 flex max-w-7xl gap-2 px-4">
+        {(
+          [
+            ["energy", "⚡ Energy Security (PS1 Target)"],
+            ["fleet", "🚛 Domestic Fleet & Freight"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={cn(
+              "rounded-xl border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300",
+              tab === id
+                ? "bg-primary text-primary-foreground shadow-card"
+                : "bg-card text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "energy" ? <EnergyView /> : <FleetView />}
+    </div>
+  );
+}
+
+function FleetView() {
+
   return (
     <div className="relative overflow-hidden">
       <div
@@ -124,6 +250,13 @@ function Landing() {
           </Card>
         ))}
       </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-12">
+        <div className="h-[440px] overflow-hidden rounded-2xl border border-border/70 shadow-card">
+          <FleetMap />
+        </div>
+      </section>
+
 
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <h2 className="text-center text-2xl font-bold tracking-tight">How it works</h2>
