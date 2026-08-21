@@ -251,6 +251,13 @@ function FleetView() {
         ))}
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 pb-12">
+        <div className="h-[440px] overflow-hidden rounded-2xl border border-border/70 shadow-card">
+          <FleetMap />
+        </div>
+      </section>
+
+
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <h2 className="text-center text-2xl font-bold tracking-tight">How it works</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
