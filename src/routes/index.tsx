@@ -9,9 +9,15 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 
+import FleetMap from "@/components/FleetMap";
+import MaritimeMap, { type Disruption } from "@/components/MaritimeMap";
+import MaritimeOptimizer from "@/components/MaritimeOptimizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
